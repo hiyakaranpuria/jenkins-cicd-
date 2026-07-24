@@ -1,5 +1,7 @@
 pipeline {
     agent any
+    # stages of jenkinsfile "
+    
 
     environment {
         APP_NAME       = 'url-shortener'
