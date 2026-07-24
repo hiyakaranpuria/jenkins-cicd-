@@ -99,8 +99,10 @@ app.delete('/api/delete/:shortCode', (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 const server = app.listen(PORT, () => {
-  console.log(`URL Shortener running on http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`URL Shortener running on http://localhost:${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+  }
 });
 
 module.exports = { app, server, urlStore };

@@ -1,14 +1,19 @@
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
 
+process.env.PORT = '0'; // use random free port to avoid conflicts
+process.env.NODE_ENV = 'test';
+
 const { app, server, urlStore } = require('./app.js');
+
+let port;
 
 async function request(method, path, body = null) {
   const http = require('http');
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'localhost',
-      port: 3000,
+      port,
       path,
       method,
       headers: { 'Content-Type': 'application/json' }
@@ -35,6 +40,7 @@ async function request(method, path, body = null) {
 describe('URL Shortener API', () => {
 
   before(() => {
+    port = server.address().port;
     Object.keys(urlStore).forEach(k => delete urlStore[k]);
   });
 
@@ -81,7 +87,7 @@ describe('URL Shortener API', () => {
 
     const http = require('http');
     const redirectRes = await new Promise((resolve, reject) => {
-      http.get(`http://localhost:3000/${shortCode}`, (res) => {
+      http.get(`http://localhost:${port}/${shortCode}`, (res) => {
         resolve({ status: res.statusCode, location: res.headers.location });
       }).on('error', reject);
     });
