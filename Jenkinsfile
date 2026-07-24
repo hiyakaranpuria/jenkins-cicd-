@@ -42,21 +42,12 @@ pipeline {
             steps {
                 echo 'Deploying application...'
 
-                // Stop and remove existing container if running
-                bat """
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm   ${CONTAINER_NAME} || true
-                """
+                // Stop and remove existing container if running (ignore errors on Windows)
+                bat "docker stop ${CONTAINER_NAME} 2>nul & exit /b 0"
+                bat "docker rm ${CONTAINER_NAME} 2>nul & exit /b 0"
 
                 // Run new container
-                bat """
-                    docker run -d \
-                        --name ${CONTAINER_NAME} \
-                        --restart unless-stopped \
-                        -p ${APP_PORT}:3000 \
-                        -e BASE_URL=https://yourdomain.com \
-                        ${IMAGE_NAME}
-                """
+                bat "docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p ${APP_PORT}:3000 -e BASE_URL=https://yourdomain.com ${IMAGE_NAME}"
 
                 echo "App deployed at http://localhost:${APP_PORT}"
             }
@@ -72,7 +63,7 @@ pipeline {
         }
         always {
             echo 'Cleaning up old Docker images...'
-            bat "docker image prune -f || true"
+            bat "docker image prune -f 2>nul & exit /b 0"
         }
     }
 }
