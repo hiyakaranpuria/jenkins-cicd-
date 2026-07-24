@@ -20,21 +20,21 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing dependencies...'
-                sh 'npm install'
+                bat 'npm install'
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                sh 'node --test src/app.test.js'
+                bat 'node --test src/app.test.js'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image: ${IMAGE_NAME}"
-                sh "docker build -t ${IMAGE_NAME} ."
+                bat "docker build -t ${IMAGE_NAME} ."
             }
         }
 
@@ -43,13 +43,13 @@ pipeline {
                 echo 'Deploying application...'
 
                 // Stop and remove existing container if running
-                sh """
+                bat """
                     docker stop ${CONTAINER_NAME} || true
                     docker rm   ${CONTAINER_NAME} || true
                 """
 
                 // Run new container
-                sh """
+                bat """
                     docker run -d \
                         --name ${CONTAINER_NAME} \
                         --restart unless-stopped \
@@ -72,7 +72,7 @@ pipeline {
         }
         always {
             echo 'Cleaning up old Docker images...'
-            sh "docker image prune -f || true"
+            bat "docker image prune -f || true"
         }
     }
 }
