@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>URL Shortener</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #f8fafc;
+    }
+
+    p.subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #f1f5f9;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #6366f1;
+    }
+
+    button {
+      padding: 12px 22px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: #4f46e5; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+
+    .result-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .result-box.show { display: block; }
+
+    .result-label {
+      font-size: 0.78rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .result-link-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-link {
+      color: #818cf8;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      word-break: break-all;
+      flex: 1;
+    }
+
+    .result-link:hover { text-decoration: underline; }
+
+    .copy-btn {
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      background: #334155;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .copy-btn:hover { background: #475569; }
+
+    .error-box {
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .error-box.show { display: block; }
+
+    .history-section { margin-top: 10px; }
+
+    .history-title {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: #0f172a;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #1e293b;
+    }
+
+    .history-original {
+      font-size: 0.82rem;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 260px;
+    }
+
+    .history-short {
+      color: #818cf8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .history-short:hover { text-decoration: underline; }
+
+    .copied-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .copied-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🔗 URL Shortener</h1>
+    <p class="subtitle">Paste a long URL and get a short one instantly.</p>
+
+    <div class="input-group">
+      <input type="text" id="urlInput" placeholder="https://example.com/very/long/url" />
+      <button id="shortenBtn" onclick="shortenUrl()">Shorten</button>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-label">Your Short URL</div>
+      <div class="result-link-row">
+        <a class="result-link" id="resultLink" href="#" target="_blank"></a>
+        <button class="copy-btn" onclick="copyUrl()">Copy</button>
+      </div>
+    </div>
+
+    <div class="history-section" id="historySection" style="display:none">
+      <div class="history-title">Recent URLs</div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="copied-toast" id="toast">Copied!</div>
+
+  <script>
+    const history = [];
+
+    async function shortenUrl() {
+      const input = document.getElementById('urlInput');
+      const btn = document.getElementById('shortenBtn');
+      const errorBox = document.getElementById('errorBox');
+      const resultBox = document.getElementById('resultBox');
+      const url = input.value.trim();
+
+      errorBox.classList.remove('show');
+      resultBox.classList.remove('show');
+
+      if (!url) {
+        showError('Please enter a URL.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Shortening...';
+
+      try {
+        const res = await fetch('/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || 'Something went wrong.');
+          return;
+        }
+
+        const resultLink = document.getElementById('resultLink');
+        resultLink.href = data.shortUrl;
+        resultLink.textContent = data.shortUrl;
+        resultBox.classList.add('show');
+
+        addToHistory(url, data.shortUrl);
+        input.value = '';
+
+      } catch (err) {
+        showError('Could not connect to server.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Shorten';
+      }
+    }
+
+    function showError(msg) {
+      const errorBox = document.getElementById('errorBox');
+      errorBox.textContent = msg;
+      errorBox.classList.add('show');
+    }
+
+    function copyUrl() {
+      const link = document.getElementById('resultLink').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      });
+    }
+
+    function addToHistory(original, short) {
+      history.unshift({ original, short });
+      if (history.length > 5) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const section = document.getElementById('historySection');
+      const list = document.getElementById('historyList');
+      section.style.display = 'block';
+      list.innerHTML = history.map(item => `
+        <div class="history-item">
+          <span class="history-original" title="${item.original}">${item.original}</span>
+          <a class="history-short" href="${item.short}" target="_blank">${item.short}</a>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('urlInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') shortenUrl();
+    });
+  </script>
+
+</body>
+</html>
