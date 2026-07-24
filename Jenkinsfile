@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         APP_NAME       = 'url-shortener'
-        DOCKERHUB_USER = 'hiyakaranpuria'
+        DOCKERHUB_USER = 'hiya855'
         IMAGE_NAME     = "${DOCKERHUB_USER}/url-shortener"
         IMAGE_TAG      = "${IMAGE_NAME}:${BUILD_NUMBER}"
         IMAGE_LATEST   = "${IMAGE_NAME}:latest"
